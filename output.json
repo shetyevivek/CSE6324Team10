@@ -1,0 +1,25 @@
+{
+	"select": {
+		"column": "None",
+		"type": "['COUNT']"
+	},
+	"from": {
+		"table": "city"
+	},
+	"join": {
+		"table": "emp"
+	},
+	"where": {
+		"condition": [
+			{ "column": "name",
+			  "type": "None",
+			  "operator": "LIKE",
+			  "value": "'%aman%'"
+			}
+		]
+	},
+	"group_by": {
+	},
+	"select": {
+	},
+}
