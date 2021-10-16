@@ -8,6 +8,8 @@ import subprocess
 import re
 import os
 
+Default_ln2SQL='ln2sql/'
+
 
 class Root(Tk):
     def __init__(self):
@@ -21,12 +23,12 @@ class Root(Tk):
         self.labelq.grid(column = 0, row = 1)
         self.un=ttk.Entry(self.Input,width=40)
         self.un.grid(column=1,row=1)
-        self.un.insert(END,'how many city there are in which the employee name is similar to aman?')
+        self.un.insert(END,'Count how many city there are with the name blob?')
         
         self.con= ttk.Button(self.Input, text = "submit",command = self.submit)
         self.con.grid(column=2,row=1)
-        self.vo=ttk.Button(self.Input,text="Voice",command=self.voice)
-        self.vo.grid(column=3,row=1)
+        #self.vo=ttk.Button(self.Input,text="Voice",command=self.voice)
+        #self.vo.grid(column=3,row=1)
         
         self.labeld = ttk.Label(self.Input,text='database dump')
         self.labeld.grid(column = 0, row = 2)
@@ -44,6 +46,8 @@ class Root(Tk):
         self.result.grid(column = 0, row = 3)
         self.plog=scrolledtext.ScrolledText(self.result,width=80,height=20)
         self.plog.grid(column=0,row=1)
+    
+    
         
     def submit(self):
         question= self.un.get()
@@ -56,13 +60,126 @@ class Root(Tk):
         sqls = subprocess.check_output('python3 -m ln2sql.main -d '+ dumpf+' -l lang_store/english.csv -j output.json -i "'+ question+'"'
 ,stderr=subprocess.STDOUT,shell=True)
         sqls = sqls.decode()
-        self.lq.insert(INSERT,question+'\n')
-        self.lq.insert(INSERT,sqls+'\n')
-        return
-    
-    def voice(self):
-        return
+        #clear the log
+        self.lq.delete(1.0,'end')
+        #insert question
+        self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": "+question+'\n')
+        #insert ln2SQL output.
+        self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": Ln2SQL output:"+ sqls + '\n')
         
+        r = self.checkFailures(sqls,question,dumpf)
+        if (r[0] ==0):
+            self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": the output passed the check"+ '\n') 
+        elif (r[0]==-1): 
+            self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": Faliure Case 1 is detected,but we cannot fix it"+ '\n')
+        elif(r[0]==-2):
+            self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": Faliure Case 1 is detected and we fixed it"+ '\n')
+            for s in r[1]:
+                self.lq.insert(INSERT, s+'\n') 
+             
+
+    #def voice(self):
+    #    return
+    def checkFailures(self,sqls,question,dumpf):
+        #scan sqldump file to create db_dict key= tablename, value = the list of attributes.
+        path = Default_ln2SQL + dumpf
+        f = open(path,"r")
+        # a new dict for database.key= tablename, value = the list of attributes.
+        tableName=''
+        db_dict={}
+        attributeList=[] 
+        inTableFlag=0 #flag use for reading all attributes under a table.
+        line= f.readline()
+        while line:
+            strs=line.split()  #split the line
+            #print(strs) 
+            #if first element is 'create', it is the defination of the table. 
+            if (strs!=[]):
+                if (inTableFlag==1):
+                    #print('11')
+                    if (strs[0]!=')'):
+                        attributeList.append(strs[0])
+                    else:
+                        inTableFlag=0 #set flag to 0
+                        #print(tableName)
+                        #print(attributeList)
+                        db_dict[tableName]=attributeList.copy() #must use copy or deepcopy
+                        attributeList.clear()
+                      
+                if (strs[0]=='CREATE'):
+                    tableName = strs[2]
+                    inTableFlag=1 #set flag to 1
+                    #print ('tableName'+tableName)            
+            line= f.readline()
+        print(db_dict)
+        f.close()
+        #===========================================================
+        #scan the output of ln2SQL
+        Sql_dict = {}
+        sqls=sqls.splitlines()
+        for s in sqls:
+            if (s!=''):
+                ss=s.split()
+                #print(ss)
+                if (ss[0]=="SELECT"): 
+                    Sql_dict["SELECT"]=ss.copy()
+                if (ss[0]=="FROM"): 
+                    Sql_dict["FROM"]=ss.copy()
+                if (ss[0]=="INNER"): 
+                    Sql_dict["INNER JOIN"]=ss.copy()
+                if (ss[0]=='ON'):
+                    Sql_dict["ON"]=ss.copy()
+                if (ss[0]=='WHERE'):
+                    Sql_dict["WHERE"]=ss.copy()
+        print(Sql_dict)                                    
+        #====================
+        #scan question=============================================
+        words=question.split()
+        #print(words)
+        
+        #start check cases.
+        r=self.checkCase01(question,words,db_dict,Sql_dict)
+        return r
+        
+    
+    def checkCase01(self,question,words,db_dict,Sql_dict): #return (0) pass: (-1) cannot fixed : (-2) can be fixed (Csql is the correct sql)
+        #Case1, if the SQL statement inner join two tables(in the example, city join emp)
+        # && the original question only mentioned one table's name(in the example, city) 
+        # && From database definition, nomentioned table has the attribute which mentioned in question, we can safely conclude that the failure happens.
+        if (("INNER JOIN" in Sql_dict) & ("FROM" in Sql_dict) & ("WHERE" in Sql_dict)):
+            #get two table names.
+            Csql=[]
+            table1=Sql_dict['INNER JOIN'][2]
+            table2=Sql_dict['FROM'][1]
+            
+            whereClause=Sql_dict['WHERE'][1].split('.') #"emp.name"
+            #print(whereClause)
+            whereTable = whereClause[0]
+            whereAttribute= whereClause[1]
+            print(table1+" "+table2+" "+whereTable+" "+whereAttribute)
+            
+            #only one table in the question.
+            if (table1==whereTable and question.find(table2)!=-1 and question.find(table1)==-1 and question.find(whereAttribute)!=-1): 
+                #self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": Faliure Case 1 is detected"+ '\n')
+                #is fixable? if table2 has a similar attribute. for example "city.cityname" 
+                fixable=0 #flag
+                for a in db_dict["`"+table2+"`"]:
+                    if(a.find(whereAttribute)):
+                        fixAttribute=a[1:-1]
+                        fixable=1
+                
+                if (fixable==1): #if fixable
+                    Csql.append('SELECT '+ Sql_dict["SELECT"][1]) #SELECT Clause
+                    Csql.append( 'FROM ' + table2)
+                    where="WHERE " + table2 + '.' + fixAttribute
+                    for i in range(2,len(Sql_dict['WHERE'])):
+                        where+=Sql_dict['WHERE'][i]
+                    Csql.append (where)
+                    print(Csql)
+                    return -2,Csql
+                else:
+                    return -1,Csql    
+        return 0,Csql    
         
         
 root=Root()
