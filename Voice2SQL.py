@@ -161,10 +161,12 @@ class Root(Tk):
             #only one table in the question.
             if (table1==whereTable and question.find(table2)!=-1 and question.find(table1)==-1 and question.find(whereAttribute)!=-1): 
                 #self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": Faliure Case 1 is detected"+ '\n')
-                #is fixable? if table2 has a similar attribute. for example "city.cityname" 
+                #is fixable? if table2 has a similar attribute. for example "city.cityname" can be fixed.
                 fixable=0 #flag
                 for a in db_dict["`"+table2+"`"]:
-                    if(a.find(whereAttribute)):
+                    #print(a.upper()+" "+ whereAttribute.upper())
+                    #print(a.upper().find(whereAttribute.upper()))
+                    if(a.upper().find(whereAttribute.upper())!=-1):
                         fixAttribute=a[1:-1]
                         fixable=1
                 
@@ -176,9 +178,9 @@ class Root(Tk):
                         where+=Sql_dict['WHERE'][i]
                     Csql.append (where)
                     print(Csql)
-                    return -2,Csql
+                    return -2,Csql #can be fixed
                 else:
-                    return -1,Csql    
+                    return -1,Csql    #cannot be fixed
         return 0,Csql    
         
         

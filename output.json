@@ -13,8 +13,8 @@
 		"condition": [
 			{ "column": "name",
 			  "type": "None",
-			  "operator": "LIKE",
-			  "value": "'%aman%'"
+			  "operator": "=",
+			  "value": "'with'"
 			}
 		]
 	},
