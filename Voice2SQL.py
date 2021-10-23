@@ -67,7 +67,9 @@ class Root(Tk):
         #insert ln2SQL output.
         self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": Ln2SQL output:"+ sqls + '\n')
         
-        r = self.checkFailures(sqls,question,dumpf)
+        
+        # check the output of ln2SQL
+        r = self.checkFailures(sqls,question,dumpf) #return value r[0] 0 pass(r[1] empty), -1 detected but cannot fix it(r[1] empty) , -2 can fix it(r[1] fixed result)
         if (r[0] ==0):
             self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": the output passed the check"+ '\n') 
         elif (r[0]==-1): 
@@ -81,7 +83,7 @@ class Root(Tk):
     #def voice(self):
     #    return
     def checkFailures(self,sqls,question,dumpf):
-        #scan sqldump file to create db_dict key= tablename, value = the list of attributes.
+        #scan sqldump file to create db_dict (key= tablename, value = the list of attributes).=======
         path = Default_ln2SQL + dumpf
         f = open(path,"r")
         # a new dict for database.key= tablename, value = the list of attributes.
@@ -131,6 +133,7 @@ class Root(Tk):
                     Sql_dict["ON"]=ss.copy()
                 if (ss[0]=='WHERE'):
                     Sql_dict["WHERE"]=ss.copy()
+                    
         print(Sql_dict)                                    
         #====================
         #scan question=============================================
@@ -146,9 +149,10 @@ class Root(Tk):
         #Case1, if the SQL statement inner join two tables(in the example, city join emp)
         # && the original question only mentioned one table's name(in the example, city) 
         # && From database definition, nomentioned table has the attribute which mentioned in question, we can safely conclude that the failure happens.
+        Csql=[]
         if (("INNER JOIN" in Sql_dict) & ("FROM" in Sql_dict) & ("WHERE" in Sql_dict)):
             #get two table names.
-            Csql=[]
+            
             table1=Sql_dict['INNER JOIN'][2]
             table2=Sql_dict['FROM'][1]
             
@@ -180,9 +184,7 @@ class Root(Tk):
                     print(Csql)
                     return -2,Csql #can be fixed
                 else:
-                    return -1,Csql    #cannot be fixed
-        return 0,Csql    
-        
-        
+                    return -1,Csql #cannot be fixed
+        return 0,Csql           
 root=Root()
 root.mainloop()    
