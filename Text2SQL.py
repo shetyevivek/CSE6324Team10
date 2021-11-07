@@ -80,8 +80,7 @@ class Root(Tk):
                 self.lq.insert(INSERT, s+'\n') 
              
 
-    #def voice(self):
-    #    return
+    
     def checkFailures(self,sqls,question,dumpf):
         #scan sqldump file to create db_dict (key= tablename, value = the list of attributes).=======
         path = Default_ln2SQL + dumpf
@@ -140,9 +139,19 @@ class Root(Tk):
         words=question.split()
         #print(words)
         
-        #start check cases.
+        #start check cases        
         r=self.checkCase01(question,words,db_dict,Sql_dict)
-        return r
+        if (r[0]!=0):
+            # Vivek, call your addvalue function here
+            # if addvalue function find the value and change the Where clause, you need change r[1], which is a Sql_dict 
+            # in otherwords, your function return a new r.
+            # should be looks like :   r=addvalue(question,words,db_dict,Sql_dict,r)
+            return r
+        #Aakreeti, you call your checkcase4 function here. should be similar with line 143-149.
+        #r=self.checkCase04(question,words,db_dict,Sql_dict)
+        
+        #=======
+        
         
     
     def checkCase01(self,question,words,db_dict,Sql_dict): #return (0) pass: (-1) cannot fixed : (-2) can be fixed (Csql is the correct sql)
@@ -185,6 +194,9 @@ class Root(Tk):
                     return -2,Csql #can be fixed
                 else:
                     return -1,Csql #cannot be fixed
-        return 0,Csql           
+        return 0,Csql   
+
+#Vivek, Aakreeti. add your function here.    
+            
 root=Root()
 root.mainloop()    
