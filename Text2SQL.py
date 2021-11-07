@@ -7,6 +7,8 @@ import time
 import subprocess
 import re
 import os
+import openai
+import json
 
 Default_ln2SQL='ln2sql/'
 
@@ -38,14 +40,14 @@ class Root(Tk):
         #SQL
         self.SQL = ttk.LabelFrame(self, text = "Text-SQL")
         self.SQL.grid(column = 0, row = 2)
-        self.lq=scrolledtext.ScrolledText(self.SQL,width=80,height=20)
+        self.lq=scrolledtext.ScrolledText(self.SQL,width=80,height=40)
         self.lq.grid(column=0,row=1)
         
         #result
-        self.result = ttk.LabelFrame(self, text = "result")
-        self.result.grid(column = 0, row = 3)
-        self.plog=scrolledtext.ScrolledText(self.result,width=80,height=20)
-        self.plog.grid(column=0,row=1)
+        #self.result = ttk.LabelFrame(self, text = "result")
+        #self.result.grid(column = 0, row = 3)
+        #self.plog=scrolledtext.ScrolledText(self.result,width=80,height=20)
+        #self.plog.grid(column=0,row=1)
     
     
         
@@ -78,6 +80,30 @@ class Root(Tk):
             self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": Faliure Case 1 is detected and we fixed it"+ '\n')
             for s in r[1]:
                 self.lq.insert(INSERT, s+'\n') 
+        # openAI api
+        
+        prom=self.buildprompt(sqls,question,dumpf)
+        print(prom)
+        openai.api_key = "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"
+        
+        response = openai.Completion.create(
+        engine="davinci-codex",
+        #prompt="### Postgres SQL tables, with their properties:\n#\n# Employee(id, name, department_id)\n# Department(id, name, address)\n# Salary_Payments(id, employee_id, amount, date)\n#\n### A query to list the names of the departments which employed more than 10 employees in the last 3 months\nSELECT",
+        prompt= prom,
+        temperature=0,
+        max_tokens=150,
+        top_p=1.0,
+        frequency_penalty=0.0,
+        presence_penalty=0.0,
+        stop=["#", ";"]
+        )
+        j=json.loads(json.dumps(response))
+        self.lq.insert(INSERT,"\n")
+        self.lq.insert(INSERT,"\n")
+        self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+":OPENAI API:"+  '\n')
+        self.lq.insert(INSERT,"SELECT"+j["choices"][0]["text"]+  '\n')
+        
+        
              
 
     
@@ -147,11 +173,11 @@ class Root(Tk):
             # in otherwords, your function return a new r.
             # should be looks like :   r=addvalue(question,words,db_dict,Sql_dict,r)
             return r
+        
         #Aakreeti, you call your checkcase4 function here. should be similar with line 143-149.
-        #r=self.checkCase04(question,words,db_dict,Sql_dict)
-        
+        #r=self.checkCase04(question,words,db_dict,Sql_dict
         #=======
-        
+        return r
         
     
     def checkCase01(self,question,words,db_dict,Sql_dict): #return (0) pass: (-1) cannot fixed : (-2) can be fixed (Csql is the correct sql)
@@ -194,8 +220,55 @@ class Root(Tk):
                     return -2,Csql #can be fixed
                 else:
                     return -1,Csql #cannot be fixed
-        return 0,Csql   
-
+        return 0,Csql  
+    
+    def buildprompt(self,sqls,question,dumpf):
+        #read dumpfile
+        #scan sqldump file to create db_dict (key= tablename, value = the list of attributes).=======
+        path = Default_ln2SQL + dumpf
+        f = open(path,"r")
+        # a new dict for database.key= tablename, value = the list of attributes.
+        tableName=''
+        db_dict={}
+        attributeList=[] 
+        inTableFlag=0 #flag use for reading all attributes under a table.
+        line= f.readline()
+        while line:
+            strs=line.split()  #split the line
+            #print(strs) 
+            #if first element is 'create', it is the defination of the table. 
+            if (strs!=[]):
+                if (inTableFlag==1):
+                    #print('11')
+                    if (strs[0]!=')'):
+                        attributeList.append(strs[0])
+                    else:
+                        inTableFlag=0 #set flag to 0
+                        #print(tableName)
+                        #print(attributeList)
+                        db_dict[tableName]=attributeList.copy() #must use copy or deepcopy
+                        attributeList.clear()
+                      
+                if (strs[0]=='CREATE'):
+                    tableName = strs[2]
+                    inTableFlag=1 #set flag to 1
+                    #print ('tableName'+tableName)            
+            line= f.readline()
+        print(db_dict)
+        f.close()
+        
+        #using db_dict build prompt
+        p="### Postgres SQL tables, with their properties:\n#\n# "
+        #add tables and attributes
+        for key, value in db_dict.items():
+            p=p+ key.replace("`","")+ "("
+            for v in value:
+                p=p+v.replace("`","")+","
+            p=p+") \n# "
+        p=p+"\n### "+ question + "\nSELECT"
+        #"Employee(id, name, department_id)\n# Department(id, name, address)\n# Salary_Payments(id, employee_id, amount, date)\n#\n### A query to list the names of the departments which employed more than 10 employees in the last 3 months\nSELECT",
+        return p
+        
 #Vivek, Aakreeti. add your function here.    
             
 root=Root()
