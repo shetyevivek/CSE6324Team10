@@ -105,7 +105,7 @@ class Root(Tk):
         
         
              
-
+    
     
     def checkFailures(self,sqls,question,dumpf):
         #scan sqldump file to create db_dict (key= tablename, value = the list of attributes).=======
@@ -167,6 +167,14 @@ class Root(Tk):
         
         #start check cases        
         r=self.checkCase01(question,words,db_dict,Sql_dict)
+        if (r[0]!=0): #i 
+            # Vivek, call your addvalue function here
+            # if addvalue function find the value and change the Where clause, you need change r[1], which is a Sql_dict 
+            # in otherwords, your function return a new r.
+            # should be looks like :   r=addvalue(question,words,db_dict,Sql_dict,r)  (1) < > (2) if where cluse '=' and ' 'between'
+            return r
+        
+        r=self.checkCase04(question,words,db_dict,Sql_dict)
         if (r[0]!=0):
             # Vivek, call your addvalue function here
             # if addvalue function find the value and change the Where clause, you need change r[1], which is a Sql_dict 
@@ -177,6 +185,9 @@ class Root(Tk):
         #Aakreeti, you call your checkcase4 function here. should be similar with line 143-149.
         #r=self.checkCase04(question,words,db_dict,Sql_dict
         #=======
+        
+        #Vivek, call your addvalue function here.
+        #r=addvalue(question,words,db_dict,Sql_dict,r)
         return r
         
     

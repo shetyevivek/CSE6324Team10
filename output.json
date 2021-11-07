@@ -1,19 +1,20 @@
 {
 	"select": {
-		"column": "firstname",
-		"type": "[]"
+		"column": "None",
+		"type": "['COUNT']"
 	},
 	"from": {
-		"table": "student"
+		"table": "city"
 	},
 	"join": {
+		"table": "emp"
 	},
 	"where": {
 		"condition": [
-			{ "column": "age",
+			{ "column": "name",
 			  "type": "None",
-			  "operator": "BETWEEN",
-			  "value": "'between'"
+			  "operator": "=",
+			  "value": "'with'"
 			}
 		]
 	},
