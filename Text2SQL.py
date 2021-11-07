@@ -84,7 +84,7 @@ class Root(Tk):
         
         prom=self.buildprompt(sqls,question,dumpf)
         print(prom)
-        openai.api_key = "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"
+        openai.api_key = "key"
         
         response = openai.Completion.create(
         engine="davinci-codex",
