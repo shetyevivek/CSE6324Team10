@@ -80,6 +80,18 @@ class Root(Tk):
             self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": Faliure Case 1 is detected and we fixed it"+ '\n')
             for s in r[1]:
                 self.lq.insert(INSERT, s+'\n') 
+                
+        #Vivek        
+        #r=addvalue(question,words,db_dict,Sql_dict,r) # < >      r[0]=0 
+        #if (r[0] ==0):
+        #    self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": do not need replace values"+ '\n') 
+        #elif (r[0]==-1): 
+        #    self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": replaced value for between and case"+ '\n')
+        #elif(r[0]==-2):
+        #    self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": replaced values"+ '\n')
+        #    for s in r[1]:
+        #        self.lq.insert(INSERT, s+'\n')       
+
         # openAI api
         
         prom=self.buildprompt(sqls,question,dumpf)
@@ -102,11 +114,7 @@ class Root(Tk):
         self.lq.insert(INSERT,"\n")
         self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+":OPENAI API:"+  '\n')
         self.lq.insert(INSERT,"SELECT"+j["choices"][0]["text"]+  '\n')
-        
-        
-             
-
-    
+           
     def checkFailures(self,sqls,question,dumpf):
         #scan sqldump file to create db_dict (key= tablename, value = the list of attributes).=======
         path = Default_ln2SQL + dumpf
@@ -168,26 +176,16 @@ class Root(Tk):
         #start check cases        
         r=self.checkCase01(question,words,db_dict,Sql_dict)
         if (r[0]!=0):  
-            # Vivek, call your addvalue function here
-            # if addvalue function find the value and change the Where clause, you need change r[1], which is a Sql_dict 
-            # in otherwords, your function return a new r.
-            # should be looks like :   r=addvalue(question,words,db_dict,Sql_dict,r)  (1) < > (2) if where cluse '=' and ' 'between'
             return r
         
-        #r=self.checkCase04(question,words,db_dict,Sql_dict)
-        #if (r[0]!=0):
-            # Vivek, call your addvalue function here
-            # if addvalue function find the value and change the Where clause, you need change r[1], which is a Sql_dict 
-            # in otherwords, your function return a new r.
-            # should be looks like :   r=addvalue(question,words,db_dict,Sql_dict,r)
-        #    return r
+        
         
         #Aakreeti, you call your checkcase4 function here. should be similar with line 143-149.
-        #r=self.checkCase04(question,words,db_dict,Sql_dict
+        #r=self.checkCase04(question,words,db_dict,Sql_dict)
+        #if (r[0]!=0):
+        #    return r
         #=======
         
-        #Vivek, call your addvalue function here.
-        #r=addvalue(question,words,db_dict,Sql_dict,r)
         return r
         
     
