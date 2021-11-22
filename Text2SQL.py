@@ -120,7 +120,7 @@ class Root(Tk):
         # openAI api
         prom=self.buildprompt(sqls,question,dumpf)
         print(prom)
-        openai.api_key = "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"
+        openai.api_key = "API Key"
         
         response = openai.Completion.create(
         engine="davinci-codex",
