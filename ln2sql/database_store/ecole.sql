@@ -25,7 +25,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 -- Structure de la table `classe`
 --
 
-CREATE TABLE IF NOT EXISTS `classe` (
+CREATE TABLE `classe` (
   `idClasse` int(11) NOT NULL AUTO_INCREMENT,
   `salle` varchar(11) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`idClasse`)
@@ -45,7 +45,7 @@ INSERT INTO `classe` (`idClasse`, `salle`) VALUES
 -- Structure de la table `eleve`
 --
 
-CREATE TABLE IF NOT EXISTS `eleve` (
+CREATE TABLE `eleve` (
   `idEleve` int(11) NOT NULL AUTO_INCREMENT,
   `idClasse` int(11) NOT NULL,
   `nom` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
@@ -72,7 +72,7 @@ INSERT INTO `eleve` (`idEleve`, `idClasse`, `nom`, `prenom`, `age`) VALUES
 -- Structure de la table `enseigner`
 --
 
-CREATE TABLE IF NOT EXISTS `enseigner` (
+CREATE TABLE `enseigner` (
   `idProf` int(11) NOT NULL,
   `idClasse` int(11) NOT NULL,
   `matiere` varchar(20) COLLATE utf8_unicode_ci NOT NULL
@@ -92,7 +92,7 @@ INSERT INTO `enseigner` (`idProf`, `idClasse`, `matiere`) VALUES
 -- Structure de la table `professeur`
 --
 
-CREATE TABLE IF NOT EXISTS `professeur` (
+CREATE TABLE `professeur` (
   `idProf` int(11) NOT NULL AUTO_INCREMENT,
   `nom` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
   `prenom` varchar(20) COLLATE utf8_unicode_ci NOT NULL,

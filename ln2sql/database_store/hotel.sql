@@ -25,7 +25,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 -- Structure de la table `chambre`
 --
 
-CREATE TABLE IF NOT EXISTS `chambre` (
+CREATE TABLE `chambre` (
   `idChambre` int(11) NOT NULL AUTO_INCREMENT,
   `nbLit` int(11) NOT NULL,
   PRIMARY KEY (`idChambre`)
@@ -48,7 +48,7 @@ INSERT INTO `chambre` (`idChambre`, `nbLit`) VALUES
 -- Structure de la table `client`
 --
 
-CREATE TABLE IF NOT EXISTS `client` (
+CREATE TABLE `client` (
   `idClient` int(11) NOT NULL AUTO_INCREMENT,
   `nom` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
   `prenom` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
@@ -74,7 +74,7 @@ INSERT INTO `client` (`idClient`, `nom`, `prenom`, `age`, `adresse`, `telephone`
 -- Structure de la table `reservation`
 --
 
-CREATE TABLE IF NOT EXISTS `reservation` (
+CREATE TABLE `reservation` (
   `idReservation` int(11) NOT NULL AUTO_INCREMENT,
   `idClient` int(11) NOT NULL,
   `idChambre` int(11) NOT NULL,

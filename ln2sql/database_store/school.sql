@@ -19,7 +19,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 -- --------------------------------------------------------
 
 
-CREATE TABLE IF NOT EXISTS `class` (
+CREATE TABLE `class` (
   `idClass` int(11) NOT NULL AUTO_INCREMENT,
   `classroom` varchar(11) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`idClass`)
@@ -32,7 +32,7 @@ INSERT INTO `class` (`idClass`, `classroom`) VALUES
 
 -- --------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS `student` (
+CREATE TABLE `student` (
   `idStudent` int(11) NOT NULL AUTO_INCREMENT,
   `idClass` int(11) NOT NULL,
   `name` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
@@ -52,7 +52,7 @@ INSERT INTO `student` (`idStudent`, `idClass`, `name`, `firstname`, `age`) VALUE
 
 -- --------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS `teaching` (
+CREATE TABLE `teaching` (
   `idProf` int(11) NOT NULL,
   `idClass` int(11) NOT NULL,
   `field` varchar(20) COLLATE utf8_unicode_ci NOT NULL
@@ -66,7 +66,7 @@ INSERT INTO `teaching` (`idProf`, `idClass`, `field`) VALUES
 -- --------------------------------------------------------
 
 
-CREATE TABLE IF NOT EXISTS `professor` (
+CREATE TABLE `professor` (
   `idProf` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
   `firstname` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
