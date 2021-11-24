@@ -203,7 +203,14 @@ class Root(Tk):
         r=self.checkCase01(question,words,db_dict,Sql_dict)
         if (r[0]!=0):  
             return r
-        
+
+        r=self.checkCase04(question,words,db_dict,Sql_dict)
+        if (r[0]!=0):
+            # Vivek, call your addvalue function here
+            # if addvalue function find the value and change the Where clause, you need change r[1], which is a Sql_dict 
+            # in otherwords, your function return a new r.
+            # should be looks like :   r=addvalue(question,words,db_dict,Sql_dict,r)
+            return r
         
         
         #Aakreeti, you call your checkcase4 function here. should be similar with line 143-149.
@@ -257,6 +264,30 @@ class Root(Tk):
                     return -1,Csql #cannot be fixed
         return 0,Csql  
     
+    def checkCase04(self,question,words,db_dict,Sql_dict): #return (0) pass: (-1) cannot fixed : (-2) can be fixed (Csql is the correct sql)
+        #Case4, if the SQL statement doesnot have between and and keywords
+        # && the original question has the between and and keyword like questions
+        # && From database definition, nomentioned table has the attribute which mentioned in question, we can safely conclude that the failure happens.
+        Csql=[]
+        if (("between" in words) & ("and" in words)):
+            #get between and and keyword.
+             table1=Sql_dict['FROM'][1]
+             attribute = Sql_dict['WHERE'][1]
+            
+        if(("BETWEEN") not in Sql_dict["WHERE"] and ("AND") not in Sql_dict["WHERE"]):
+            #is fixable? if table has datatype.
+            fixable=1 #flag
+            if (fixable==1): #if fixable
+                Csql.append('SELECT '+ Sql_dict["SELECT"][1]) #SELECT Clause
+                Csql.append( 'FROM ' + table1)
+                where="WHERE " + attribute + " BETWEEN "+ (Sql_dict['WHERE'][3]).replace(";","") +" AND " + Sql_dict["WHERE"][3]
+                Csql.append (where)
+                print(Csql)
+                return -2,Csql #can be fixed
+            else:
+                return -1,Csql #cannot be fixed
+        return 0,Csql 
+
     def buildprompt(self,sqls,question,dumpf):
         #read dumpfile
         #scan sqldump file to create db_dict (key= tablename, value = the list of attributes).=======
