@@ -28,7 +28,7 @@ class Root(Tk):
         self.labelq.grid(column = 0, row = 1)
         self.un=ttk.Entry(self.Input,width=40)
         self.un.grid(column=1,row=1)
-        self.un.insert(END,"Count how many city there are with the name blob")
+        self.un.insert(END,"Display the name of professor who is teaching algorithm.")
         #self.un.insert(END,"Display the firstname of student whose age is between 21 and 25")
         
         self.con= ttk.Button(self.Input, text = "submit",command = self.submit)
@@ -40,7 +40,7 @@ class Root(Tk):
         self.labeld.grid(column = 0, row = 2)
         self.dbn= ttk.Entry(self.Input,width=40)
         self.dbn.grid(column=1,row=2)
-        self.dbn.insert(END,'database_store/city.sql')
+        self.dbn.insert(END,'database_store/school.sql')
         #SQL
         self.SQL = ttk.LabelFrame(self, text = "Text-SQL")
         self.SQL.grid(column = 0, row = 2)
@@ -62,7 +62,7 @@ class Root(Tk):
         print (question)
         print(dumpf)
         
-        sqls = subprocess.check_output('python -m ln2sql.main -d '+ dumpf +' -l lang_store/english.csv -j output.json -i "'+ question +'"', stderr=subprocess.STDOUT,shell=True)
+        sqls = subprocess.check_output('python3 -m ln2sql.main -d '+ dumpf +' -l lang_store/english.csv -j output.json -i "'+ question +'"', stderr=subprocess.STDOUT,shell=True)
         sqls = sqls.decode()
         #clear the log
         self.lq.delete(1.0,'end')
@@ -120,7 +120,7 @@ class Root(Tk):
         # openAI api
         prom=self.buildprompt(sqls,question,dumpf)
         print(prom)
-        openai.api_key = "Open AI API Key"
+        openai.api_key = "key"
         
         response = openai.Completion.create(
         engine="davinci-codex",
@@ -137,7 +137,75 @@ class Root(Tk):
         self.lq.insert(INSERT,"\n")
         self.lq.insert(INSERT,"\n")
         self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+":OPENAI API:"+  '\n')
-        self.lq.insert(INSERT,"SELECT"+j["choices"][0]["text"]+  '\n')
+        self.lq.insert(INSERT,"SELECT"+j["choices"][0]["text"]+  '\n\n')
+        
+        #split text to a list of SQL by \n
+        openAIoutput= "SELECT" + j["choices"][0]["text"]
+        # check the output of OpenAI API
+        r = self.checkOpenAIFailures(openAIoutput,question,dumpf) #return value r[0] 0 pass(r[1] empty), -1 detected but cannot fix it(r[1] empty) , -2 can fix it(r[1] fixed result)
+        if (r[0]==0):
+            self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": The output of SQL translate passed the check"+ '\n') 
+        elif (r[0]==-1): 
+            self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": SQL translate: Failure Case is detected, but we cannot fix it"+ '\n\n')
+        elif(r[0]==-2):
+            self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": SQL translate: Failure Case is detected and we can fixed it"+ '\n\n')
+            for s in r[1]:
+                self.lq.insert(INSERT, s+'\n')
+        
+        
+    #===== the end of submit()     
+        
+    def checkOpenAIFailures(self,sqls,question,dumpf):
+        #scan sqldump file to create db_dict (key= tablename, value = the list of attributes).=======
+        path = Default_ln2SQL + dumpf
+        f = open(path,"r")
+        # a new dict for database.key= tablename, value = the list of attributes.
+        tableName=''
+        #db_dict={}
+        attributeList=[] 
+        inTableFlag=0 #flag use for reading all attributes under a table.
+        line= f.readline()
+        while line:
+            strs=line.split()  #split the line
+            #print(strs) 
+            #if first element is 'create', it is the defination of the table. 
+            if (strs!=[]):
+                if (inTableFlag==1):
+                    #print('11')
+                    if (strs[0]!=')'):
+                        attributeList.append(strs[0])
+                    else:
+                        inTableFlag=0 #set flag to 0
+                        #print(tableName)
+                        #print(attributeList)
+                        db_dict[tableName]=attributeList.copy() #must use copy or deepcopy
+                        attributeList.clear()
+                      
+                if (strs[0]=='CREATE'):
+                    tableName = strs[2]
+                    inTableFlag=1 #set flag to 1
+                    #print ('tableName'+tableName)            
+            line= f.readline()
+        print(db_dict)
+        f.close()
+        #===========================================================
+        #scan the output of openAI api
+        #Sql_dict = {}
+        sqls=sqls.splitlines()
+                                            
+        #====================
+        #scan question=============================================
+        words=question.split()
+        #print(words)
+
+
+        
+        #start check cases        
+        r=self.OpenAIcase1(question,words,db_dict,sqls) #must using a list of SQL instead of SQL_dict since two join(key conflict)
+        if (r[0]!=0):  
+            return r
+        
+        return r   
            
     def checkFailures(self,sqls,question,dumpf):
         #scan sqldump file to create db_dict (key= tablename, value = the list of attributes).=======
@@ -204,12 +272,8 @@ class Root(Tk):
         if (r[0]!=0):  
             return r
 
-        r=self.checkCase04(question,words,db_dict,Sql_dict)
-        if (r[0]!=0):
-            # Vivek, call your addvalue function here
-            # if addvalue function find the value and change the Where clause, you need change r[1], which is a Sql_dict 
-            # in otherwords, your function return a new r.
-            # should be looks like :   r=addvalue(question,words,db_dict,Sql_dict,r)
+        r=self.checkCase02(question,words,db_dict,Sql_dict)
+        if (r[0]!=0):  
             return r
         
         
@@ -273,7 +337,6 @@ class Root(Tk):
             #get between and and keyword.
              table1=Sql_dict['FROM'][1]
              attribute = Sql_dict['WHERE'][1]
-            
         if(("BETWEEN") not in Sql_dict["WHERE"] and ("AND") not in Sql_dict["WHERE"]):
             #is fixable? if table has datatype.
             fixable=1 #flag
@@ -454,6 +517,53 @@ class Root(Tk):
                 else:
                     return -1,Csql #cannot be fixed
         return 0,Csql
-
+    
+    def checkCase02(self,question,words,db_dict,Sql_dict): #return (0) pass: (-1) cannot fixed : (-2) can be fixed (Csql is the correct sql)
+        #Case2, if the Question has two or more table names. 
+        # && the output does't has a inner join. we can safely conclude that the failure 2 happens.
+        # cannot be fixed since no attr. if has attr, ln2SQL will give a correct answer. aggraisive approch. scan data. 
+        
+        Csql=[] 
+        # count tables name in question.
+        count=0
+        for w in words:
+            if ("`"+w+"`" in db_dict):
+                count+=1
+                
+        #if count more than 2 and inner join not in. happens.         
+        if ((count>=2) and ("INNER JOIN" not in Sql_dict)):
+            return -1,Csql
+        else:    
+            return 0,Csql
+        
+    def OpenAIcase1(self,question,words,db_dict,Sqls): #must using a list of SQL instead of SQL_dict since two join(key conflict)
+        # has two join clauses and on join table isn't mentioned in question.
+        Csql=[]
+        Jtables=[]
+        #count join clause
+        count =0
+        for s in Sqls:
+            s=s.split()
+            if (s[0]=="JOIN"):
+                count+=1
+                Jtables.append(s[1])
+                
+        #if
+        if (count==2):
+            if (Jtables[0] not in words and Jtables[1] in words):
+                for i in range(len(Sqls)):
+                    s=Sqls[i].split()
+                    if (s[1]!= Jtables[0]):
+                        Csql.append(Sqls[i])
+                return -2,Csql
+            
+            if (Jtables[0] in words and Jtables[1] not in words):
+                for i in range(len(Sqls)):
+                    s=Sqls[i].split()
+                    if (s[1]!= Jtables[1]):
+                        Csql.append(Sqls[i])
+                return -2,Csql    
+        return 0,Csql
+        
 root=Root()
 root.mainloop()

@@ -1,22 +1,14 @@
 {
 	"select": {
-		"column": "None",
-		"type": "['COUNT']"
+		"column": "name",
+		"type": "[]"
 	},
 	"from": {
-		"table": "city"
+		"table": "professor"
 	},
 	"join": {
-		"table": "emp"
 	},
 	"where": {
-		"condition": [
-			{ "column": "name",
-			  "type": "None",
-			  "operator": "=",
-			  "value": "'with'"
-			}
-		]
 	},
 	"group_by": {
 	},
