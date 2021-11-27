@@ -256,7 +256,7 @@ class Root(Tk):
                     Csql.append( 'FROM ' + table2)
                     where="WHERE " + table2 + '.' + fixAttribute
                     for i in range(2,len(Sql_dict['WHERE'])):
-                        where+=Sql_dict['WHERE'][i]
+                        where+=" "+Sql_dict['WHERE'][i]
                     Csql.append (where)
                     print(Csql)
                     return -2,Csql #can be fixed
