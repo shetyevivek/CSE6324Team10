@@ -146,6 +146,14 @@ class Root(Tk):
         print(z)
         if (z==0):
             self.lq.insert(INSERT,time.strftime('\n\n' + '%Y-%m-%d %H:%M:%S')+": No need replace the attribute values"+ '\n')
+
+            mycursor.execute(sqls)
+            myresult = mycursor.fetchall()
+
+            for x in myresult:
+                self.plog.insert(INSERT, x)
+                self.plog.insert(INSERT, '\n')
+
         if(z==1):
             self.lq.insert(INSERT,time.strftime('\n\n' + '%Y-%m-%d %H:%M:%S')+": We need to replace the attribute values"+ '\n\n')
             self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": After replacing the attribute values:"+ '\n')
@@ -169,7 +177,7 @@ class Root(Tk):
         # OpenAI API
         prom=self.buildprompt(sqls,question,dumpf)
         print(prom)
-        openai.api_key = "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"
+        openai.api_key = "Our OpenAI API Key"
         
         response = openai.Completion.create(
         engine="davinci-codex",
