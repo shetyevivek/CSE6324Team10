@@ -82,6 +82,19 @@ class Root(Tk):
     
     # After clicking submit button
     def submit(self):
+        #Reset Global Variable values
+        Default_ln2SQL='ln2sql/'
+        Sql_dict = {}
+        db_dict={}
+        asql = []
+        att_values=[]
+        corrected_attrib = ""
+        where_clause = []
+        or_clause = []
+        and_clause = []
+        attribute1 = ""
+        attribute2 = ""
+        
         question= self.un.get()
         dumpf= self.dbn.get()
 
@@ -177,7 +190,7 @@ class Root(Tk):
         # OpenAI API
         prom=self.buildprompt(sqls,question,dumpf)
         print(prom)
-        openai.api_key = "Our OpenAI API Key"
+        openai.api_key = "API Key"
         
         response = openai.Completion.create(
         engine="davinci-codex",
