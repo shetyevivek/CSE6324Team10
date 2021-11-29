@@ -8,10 +8,10 @@ requirements:
 
 
 run: 
-//linux 
+//linux search code  "sqls = subprocess.check_output" make sure the string using "python3" instead of "python"
 python3 Text2SQL.py.
 
-//Windows //need change code 
+//Windows // search code  "sqls = subprocess.check_output" make sure the string using "python" instead of "python3"
 python Text2SQL.py.
 
 
