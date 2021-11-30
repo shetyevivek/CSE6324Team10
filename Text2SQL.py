@@ -157,7 +157,7 @@ class Root(Tk):
         # Calling the CheckValues Function
         z = self.checkValues(Sql_dict, att_values)
         print(z)
-        if (z==0):
+        if(z==0):
             self.lq.insert(INSERT,time.strftime('\n\n' + '%Y-%m-%d %H:%M:%S')+": No need replace the attribute values"+ '\n')
 
             mycursor.execute(sqls)
@@ -185,12 +185,12 @@ class Root(Tk):
             for x in myresult:
                 self.plog.insert(INSERT, x)
                 self.plog.insert(INSERT, '\n')
-        
+
 #********************************************************************************************************************************************************
         # OpenAI API
         prom=self.buildprompt(sqls,question,dumpf)
         print(prom)
-        openai.api_key = "API Key"
+        openai.api_key = "Our API Key"
         
         response = openai.Completion.create(
         engine="davinci-codex",
@@ -221,9 +221,19 @@ class Root(Tk):
             self.lq.insert(INSERT,time.strftime('%Y-%m-%d %H:%M:%S')+": SQL translate: Failure Case is detected and we can fixed it"+ '\n\n')
             for s in r[1]:
                 self.lq.insert(INSERT, s+'\n')
+
+#********************************************************************************************************************************************************
+        # Checking the limit clause
+        n = self.checkLimit(Sql_dict, att_values, word_split)
+
+        if(n[0] == 0):
+            self.lq.insert(INSERT,time.strftime('\n\n' + '%Y-%m-%d %H:%M:%S')+": No limit specified on output rows"+ '\n')
+        if(n[0] == 1):
+            self.lq.insert(INSERT,time.strftime('\n\n' + '%Y-%m-%d %H:%M:%S')+": Limit of " + n[1] + " specified on output rows"+ '\n')
+
+            m = self.LimitValues(n[1], sqls)
         
-        
-    #===== the end of submit()     
+    #===== the end of submit()
     
 #**********************************************************************************************************************************************************
     # Check OpenAI Failure Case
@@ -593,7 +603,44 @@ class Root(Tk):
             p+=1
 
         return 0, asql
+
+#************************************************************************************************************************************************
+
+    def checkLimit(self,Sql_dict, att_values, word_split):
+        if('limit' in word_split):
+            index = word_split.index('limit')
+            index += 1
+            limit = word_split[index]
+            print("Limit = " + limit)
+            return 1, limit
+
+        if('top' in word_split):
+            index = word_split.index('top')
+            index += 1
+            limit = word_split[index]
+            print("Limit = " + limit)
+            return 1, limit
+
+        else:
+            return 0, 0
+
+
+#************************************************************************************************************************************************
+    def LimitValues(self, n, sqls):
+        v = " LIMIT " + n
+        sqls = sqls.replace(";", v)
+        self.lq.insert(INSERT, sqls)
+
+        self.plog.delete(1.0,'end')
+
+        mycursor.execute(sqls)
+        myresult = mycursor.fetchall()
+
+        for x in myresult:
+            self.plog.insert(INSERT, x)
+            self.plog.insert(INSERT, '\n')
     
+
 #************************************************************************************************************************************************
     # Check Case 2 function
     def checkCase02(self,question,words,db_dict,Sql_dict): #return (0) pass: (-1) cannot fixed : (-2) can be fixed (Csql is the correct sql)
